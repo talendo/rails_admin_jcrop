@@ -5,7 +5,7 @@ module RailsAdminJcrop
       CropFields = [:crop_x, :crop_y, :crop_w, :crop_h, :crop_field]
 
       def self.included(base)
-        base.send :attr_accessor, *CropFields
+        base.send :attr_accessor, :crop_field
       end
 
       def rails_admin_cropping?
