@@ -3,7 +3,7 @@ require 'mini_magick'
 module RailsAdmin
 
   class JcropController < RailsAdmin::ApplicationController
-    skip_before_filter :get_model
+    skip_before_filter(:get_model) rescue nil
     before_filter :get_model, :get_object, :get_field, :get_fit_image
 
     helper_method :abstract_model, :geometry
