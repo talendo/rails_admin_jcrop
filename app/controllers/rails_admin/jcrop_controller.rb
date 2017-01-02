@@ -3,8 +3,8 @@ require 'mini_magick'
 module RailsAdmin
 
   class JcropController < RailsAdmin::ApplicationController
-    skip_before_filter(:get_model) rescue nil
-    before_filter :get_model, :get_object, :get_field, :get_fit_image
+    skip_before_action(:get_model) rescue nil
+    before_action :get_model, :get_object, :get_field, :get_fit_image
 
     helper_method :abstract_model, :geometry
 
@@ -16,26 +16,13 @@ module RailsAdmin
       @image_tag_options = {}
       @image_tag_options[:class] = "jcrop-subject"
       @file_path=''
-      #Condition for Carrierwave.
-      if @object.send(@field).class.to_s =~ /Uploader/
 
-        if @object.send(@field)._storage.to_s =~ /Fog|AWS/
+      if @object.send(@field)._storage.to_s =~ /Fog|AWS/
 
-          @file_path=@object.send(@field).url
-        else
+        @file_path=@object.send(@field).url
+      else
 
-          @file_path=@object.send(@field).path
-        end
-      #Condition for Paperclip.
-      elsif @object.send(@field).class.to_s =~ /Paperclip/
-
-        if (@object.send(@field).options[:storage].to_s =='s3')
-
-          @file_path=@object.send(@field).url
-        else
-
-          @file_path=@object.send(@field).path
-        end
+        @file_path=@object.send(@field).path
       end
 
       @image_tag_options[:'data-geometry'] = geometry(@file_path).join(",")
@@ -58,7 +45,15 @@ module RailsAdmin
     end
 
     def update
-      @object.rails_admin_crop! params
+      @object.crop_w = params[:crop_w]
+      @object.crop_h = params[:crop_h]
+      @object.crop_x = params[:crop_x]
+      @object.crop_y = params[:crop_y]
+
+      if cropping? && get_field.present? && @object.public_send("#{get_field}?")
+        @object.public_send(get_field).recreate_versions!
+        @object.save!
+      end
 
       respond_to do |format|
         format.html { redirect_to_on_success }
